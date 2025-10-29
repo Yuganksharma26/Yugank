@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Result — 1 earn with AI</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="dark">
+  <header class="site-header">
+    <div class="brand">1 <span class="accent">earn</span> with <span class="accent">AI</span></div>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/upload" class="cta">Create Video</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Generation Result</h2>
+    <p>Original file: {{ job.original_name }}</p>
+
+    {% if job.result_url %}
+      <div class="video-wrap">
+        <video controls width="100%" preload="metadata">
+          <source src="{{ job.result_url }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <p style="margin-top:10px;"><a class="btn" href="{{ job.result_url }}" download>Download Video</a></p>
+    {% else %}
+      <p>Still processing. Refresh this page in a few seconds.</p>
+    {% endif %}
+  </main>
+
+</body>
+</html>
