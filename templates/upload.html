@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create Video — 1 earn with AI</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="dark">
+  <header class="site-header">
+    <div class="brand">1 <span class="accent">earn</span> with <span class="accent">AI</span></div>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/upload" class="cta">Create Video</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Create a video from an image</h2>
+
+    <form id="uploadForm">
+      <label class="file-box">
+        <input type="file" id="image" name="image" accept="image/*" />
+        <div class="file-box-inner">
+          <div class="big">Choose or drop an image</div>
+          <div class="small">PNG, JPG, JPEG, WEBP — max 10MB (demo)</div>
+        </div>
+      </label>
+
+      <div style="margin-top:20px;">
+        <button type="submit" class="btn primary">Upload & Generate</button>
+      </div>
+    </form>
+
+    <div id="status" class="status-box" style="display:none;">
+      <div id="progressText">Queued…</div>
+      <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+      <div id="resultLink" style="margin-top:10px;"></div>
+    </div>
+  </main>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fileInput = document.getElementById('image');
+  if (!fileInput.files || !fileInput.files[0]) { alert('Please choose an image'); return; }
+
+  const fd = new FormData();
+  fd.append('image', fileInput.files[0]);
+
+  document.getElementById('status').style.display = 'block';
+  document.getElementById('progressText').innerText = 'Uploading file…';
+  try {
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!data.ok) { alert('Upload failed: ' + (data.error||'unknown')); return; }
+
+    const jobId = data.job_id;
+    document.getElementById('progressText').innerText = 'Queued. Generating…';
+    pollStatus(jobId);
+  } catch (err) {
+    alert('Upload error: ' + err.message);
+  }
+});
+
+async function pollStatus(jobId) {
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const resultLink = document.getElementById('resultLink');
+
+  const interval = setInterval(async () => {
+    const r = await fetch('/api/status/' + jobId);
+    const j = await r.json();
+    if (!j.ok) { progressText.innerText = 'Error'; clearInterval(interval); return; }
+    const job = j.job;
+    progressBar.style.width = job.progress + '%';
+    progressText.innerText = 'Status: ' + job.status + ' — ' + job.progress + '%';
+    if (job.status === 'done') {
+      clearInterval(interval);
+      resultLink.innerHTML = '<a class="btn" href="/result/' + jobId + '">View Result</a>';
+      progressText.innerText = 'Completed';
+    }
+  }, 1200);
+}
+</script>
+
+</body>
+</html>
